@@ -1,0 +1,242 @@
+\documentclass[12 pt]{article}
+\usepackage[centertags]{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{newlfont}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumerate}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\graphicspath{ {./capstone/} }
+
+
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes,snakes,automata,backgrounds,petri}
+
+\theoremstyle{definition}
+\newtheorem{question}{}
+\newenvironment{solution}{\noindent {\em Solution.}}{\qed}
+\newenvironment{solprof}{\noindent {\em Solution and Proof.}}{\qed}
+\newenvironment{comment}{\noindent {\em Comments and Corrections.}}{}
+
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\A}{\mathcal{A}}
+\renewcommand{\P}{\mathcal{P}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\pnth}[1]{\left( #1 \right)}
+\newcommand{\brkt}[1]{\left[ #1 \right]}
+\newcommand{\e}{\mathrm{e}}
+\renewcommand{\l}{\ell}
+\newcommand{\vep}{\varepsilon}
+\newcommand{\la}{\lambda}
+\newcommand{\del}{\delta}
+\newcommand{\mt}{\mathrm{min}}
+\newcommand{\m}{\mathrm{m}}
+\renewcommand{\bf}{\bfseries}
+\newcommand{\abs}[1]{\left| #1 \right|}
+\newcommand{\Span}{\operatorname{Span}}
+\newcommand{\da}[2]{\dfrac{d #1}{d #2}}
+\newcommand{\ip}[1]{\left\langle #1 \right\rangle}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\T}{\dagger}
+\newcommand{\adj}{\operatorname{adj}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\norm}[1]{\left\| #1 \right\|}
+
+\pagestyle{empty}
+
+
+\begin{document}
+
+
+
+\begin{center}
+  \textbf{Neural Networks and Universal Approximation of Continuous Functions}
+\end{center}
+
+\
+
+\begin{center}
+ \textbf{William Rasmussen}
+\end{center}
+
+\
+
+\textbf{What is an artifical neural network?}
+
+\
+
+An artifical neural network is a computing system that mimics the way the brain works by using interconnected nodes that act like neurons in the brain, and using algorithms, the neural network "learns" over time. They were first theorized in 1943 by Warren McCulloch and Walter Pitt, but the study of neural networks and their application to artificial intelligence didn't fully take off until Kunihiko Fukushima developed the first multilayered neural network in 1975. Now they are used in many different applications such as facial and speech recognition, computer vision, fraud detection, financial modeling, and much more. Neural networks fall under the umbrella of artificial intelligence, along with machine learning. To briefly explain the differences of between the two, the structure of machine learning is different in that a machine learing model is made to be fed data as an input and using algorithims, it learns over time, and with more data and more time, its output becomes more precise. In the early stages of a machine learning model, it requires some human intervention, whereas a neural network requires less human intervention in the beginning. Where a machine learning model has an input and an output, a neural network is designed to have an input layer with many inputs, followed by at least one hidden layer, and then an output layer, making the structure quite different. 
+
+\
+
+\includegraphics{network1}
+
+\
+
+This diagram shows the interconnected nodes, or neurons, that are in the different layers. Data is fed into the input layer, where there is a neuron for each compontent in the input data, and it is then communicated to one or more hidden layers. In the hidden layers, a computation is done with weights and biases ($w,b$ in the diagram respectively), and a weighted sum is calculated. That value is fed into an activation function, and the value of the activation function decides if the neuron should be activated or not, similar to how a brain neuron either fires or doesn't fire based off of an outside stimulus. In this paper, I will be using the sigmoid function as the activation function. The sigmoid function is defined as 
+\begin{equation*}
+\sigma(x) = \frac{1}{1 + e^{-x}}
+\end{equation*}
+The sigmoid function is useful because the output is between 0 and 1, so it gives a value that can be interpreted as either fire or don't fire. Sigmoid functions were originally the main activation function used in neural networks and machine learning models, but nowadays there are better activation functions, such as linear, softmax, and ReLU, with ReLU being one of the most widely used. These different activation functions generally have a constant gradient, whereas the sigmoid function's becomes increasingly small in, so more of a gradient allows for quicker learning. After the values are passed through the activation function, the output of the layer is used as the input in the next hidden layer and repeats until it reaches the output layer. In the calculation of the weighted sum, there are weights and biases applied to each. In the beginning stages of a neural network, these values are assigned randomly, but through back propogation, the weights and biases are updated in order to minimize error from expected values. In order to precisely assign weight and bias values, the gradient descent algorithm is used. This is defined as 
+\begin{equation*}
+p_{n+1} = p_{n} - \eta \nabla f(p_{n})
+\end{equation*}
+Where $\eta$ is called the learning rate and it scales the gradient and controls the step size. This allows for the error to be minimized. 
+
+\
+
+\includegraphics[scale = .60]{gradient1}
+
+\
+
+\textbf{Approximating functions using neural networks}
+
+\
+
+Now we claim that for any continuous function $f$ on a compact set $K$, there exists a feedforward neural network with a signle hidden layer, that uniformly approximates $f$ to within $\epsilon > 0$ on $K$. 
+
+\
+
+Definitions: Let $I_{n}$ be an $n^{\text{th}}$ dimensional unit cube. This can be represented by the Cartesian Product $[0,1]^{n}$. Let $C(I_{n})$ be the space of continuous funcctions with codomain of $\C$, on $I_{n}$. Let $M(I_{n})$ be the space of finite, signed Borel measures on $I_{n}$. A measure $\mu$ is regular if the following holds
+\begin{equation*}
+\begin{split}
+1. \ \mu(K) &< \infty \ \text{for all compact sets $K$} \\
+2. \ \mu(E) &= \text{inf} \left\{ \mu(U) : E \subseteq U, \text{where $U$ is open} \right\} \\
+3. \ \mu(E) &= \text{sup} \left\{ \mu(K) : K \subseteq E, \text{where $K$ is compact} \right\} 
+\end{split}
+\end{equation*}
+A single measure gives us a notion of size on a set in that it tells us how much space a set takes up in relation to the larger set of which it is in. All integration we will use is done with respect to regular measures on $C(I_{n})$. This becomes useful because the measure of a compact set has finite measure if the measure being applied is regular. In metric space, the Heine-Borel Theorem holds so a set is compact if and only if it is closed and bounded. Using regular measures is also beneficial because it allows for the use of the Riesz Representation Theorem. Note that the uniform norm of a function $f: A \rightarrow B$ is 
+\begin{equation*}
+||f|| = \text{sup} \left\{ |f(x)| : x \in A \right\}
+\end{equation*}
+So we can say that the uniform norm gives an upper bound on all values of $f$. For two functions $f, g$, $||f- g||$ gives a uniform bound on the amount that $f$ and $g$ differ from each other. To prove the claim, we want to show that a set of feedforward neural networks is dense in $C(I_{n})$ with respect to the uniform norm. A set $A$ is dense in $K$ if $\overline{A} = K$, meaning the closure of $A$ is the entire space $K$. Since we are working with a metric space, there is a notion of distance between functions, so $A$ is dense in $K$ if for every $x \in K$ there exists a sequence $(a_{n})_{n \in \N} \in A$ such that $\text{lim}_{n \rightarrow \infty}a_{n} = x$. Now we can restate the claim that for any continuous function $f$ on a compact set $K$, there exists a feedforward neural network that uniformly approximates $f$ to within $\epsilon > 0$ on $K$ into three different statements. 
+\begin{enumerate}
+\item The set of all feedfoward neural networks $\mathcal{N}$ is dense in $C(I_{n})$ 
+\item For every continuous function $f \in C(I_{n})$, there exists a sequence of neural networks $(n_{j}) \in \mathcal{N}$ converging to $f$, as in $\text{lim}_{j \rightarrow \infty} n_{j} = f$ 
+\item For every continuous function $f \in C(I_{n})$ and $\epsilon > 0$, there exists a neural network $g \in \mathcal{N}$ such that $|| g - f || < \epsilon$
+\end{enumerate}
+Definition: A feedforward neural network having $N$ neurons arranged in a single hidden layer is a function $y: \R^{m} \rightarrow \R$ defined by 
+\begin{equation*}
+y(\textbf{x}) = \sum_{i = 1}^{N} \alpha_{i} \sigma(\textbf{w}^{T}_{i} \textbf{x} + b_{i}), \  \textbf{w}_{i}, \textbf{x} \in \R^{m}, \ \alpha_{i}, b_{i} \in \R
+\end{equation*}
+Here, the $\textbf{w}_{i}$ are the weights of the individual neurons and they are applied to the input $\textbf{x}$. The $\alpha_{i}$ are the network weights and they are applied to the output of each neuron in the hidden layer. The $b_{i}$ is the bias of neuron $i$. Recall that $\sigma$ is the activation function $\sigma: \R \rightarrow \R$ defined as 
+\begin{equation*}
+\sigma(x) = \frac{1}{1 + e^{-x}}
+\end{equation*}
+and note that 
+\begin{equation*}
+\sigma(t) \rightarrow \begin{cases} 1 & \text{as} \ t \rightarrow \infty \\
+0 & \text{as} \ t \rightarrow -\infty
+\end{cases}
+\end{equation*}
+Definition: $\sigma$ is discriminatory if for $\mu \in M(I_{n})$ and 
+\begin{equation*}
+\int_{I_{n}} \sigma( \textbf{w}^{T}_{i} \textbf{x} + b_{i}) d \mu( \textbf{x}) = 0 
+\end{equation*}
+for all $\textbf{w}_{i} \in \R^{m}$, $b_{i} \in \R$ then $\mu = 0$. This means that for a nonzero $\mu$, there exists $\textbf{w}_{i}, b_{i}$ such that $\int_{I_{n}} \sigma( \textbf{w}^{T}_{i} \textbf{x} + b_{i}) d \mu( \textbf{x}) \neq 0$, so this ensures that $\textbf{w}_{i} \textbf{x} + b_{i}$ can't be sent to a set of measure zero. 
+
+\
+
+\textbf{Theorems}
+
+\
+
+\textbf{Hahn-Banach Theorem:} Let $X$ be a real vector space, $p$ a sublinear functional on $X$, $M$ a subspace of $X$, and $f$ a linear functional on $M$ such that $f(x) \leq p(x)$ for all $x \in M$. Then there exists a linear functional $F$ on $X$ such that $F(x) \leq p(x)$ for all $x \in X$, and $F|M = f$. A linear functional is a linear map from a vector space $X$ to $A$ where $A = \R$ or $\C$. The Hahn-Banach Theorem gives a way to extend a bounded linear functional defined on $\mathcal{N}$ to one defined on all of $C(I_{n})$. Also, $\int_{I_{n}}$ acts as a linear functional on $C(I_{n})$. 
+
+\
+
+\textbf{Riesz Representation Theorem:} If $I$ is a positive linear functional on $C_{c}(X)$, there is a unique Radon measure $\mu$ on $X$ such that $I(f) = \int f d \mu$ for all $f \in C_{c}(X)$. Moreover, $\mu$ satisfies 
+\begin{enumerate} 
+\item $\mu(U) = \text{sup} \left\{ I(f) : f \in C_{c}(X), 0 \leq f \leq 1, \text{supp}(f) \subset U \right\} \text{for all open $U \subset X$ and}$
+\item $\mu(K) = \text{inf} \left\{ I(f) : f \in C_{c}(X), 0 \leq f \leq 1, r \geq \chi_{k} \right\} \text{for all compact $K \subset X$}$
+\end{enumerate}
+Where $C_{c}(X)$ is the functions of compact support defined on $X$, and $\chi_{K}$ is the indicator function of the compact set $K$. In our case, $C(I_{n})$ is $\sigma$ compact so we don't have to deal with Radon measures, regular Borel measures work. 
+
+\
+
+\textbf{Lemma:} Any bounded, measurable sigmoidal function $\sigma$ is discriminatory. In particular, any continous sigmoidal funtion is discriminatory.
+
+\
+
+\textbf{Theorem:} If the $\sigma$ in the neural network is a continuous, discriminatory function, then the set of all neural networks is dense in $C(I_{n})$. 
+
+\
+
+Proof: Let $\mathcal{N} \subset C(I_{n})$ be the set of neural networks. $\mathcal{N}$ is a linear subspace of $C(I_{n})$. Suppose $\overline{\mathcal{N}} \neq C(I_{n})$, so $\overline{\mathcal{N}}$ is a closed, proper subspace of $C(I_{n})$. By the Hahn-Banach Theorem, there exists a bounded linear functional on $C(I_{n}), L$ such that $L(\mathcal{N}) = L(\overline{\mathcal{N}}) = 0$, but $L \neq 0$. Here, $\int_{I_{n}}$ acts as a linear functional on $C(I_{n})$. By the Riesz Representation Theorem, we can write the functional $L$ as 
+\begin{equation*}
+L(h) = \int_{I_{n}} h(x) d \mu(x) 
+\end{equation*}
+for some $\mu \in M(I_{n})$, for all $h \in C(I_{n})$. By definition, any neural network is an element of $\mathcal{N}$, and $L$ is identically zero on $\mathcal{N}$, so we have that 
+\begin{equation*}
+\int_{I_{n}} h(x) d \mu(x) = 0 
+\end{equation*}
+$\sigma$ is discriminatory, so $\mu$ must be equal to $0$, which contradicts $L \neq 0$ because $\mu = 0$ implies that 
+\begin{equation*}
+\int_{I_{n}} h(x)d \mu(x) = 0 \ \text{for all $h \in C(I_{n})$}
+\end{equation*}
+Therefore $\mathcal{N}$ is dense in $C(I_{n})$. 
+
+\
+
+\hspace*{\fill}\qedsymbol
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document} 
